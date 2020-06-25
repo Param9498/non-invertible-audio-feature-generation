@@ -1,1 +1,5 @@
-# non-invertible-audio-feature-generation
+# Non-invertible Audio Feature Generation
+
+## Abstract
+
+Pre-trained models for feature extraction have recently seen widespread adoption and use across several areas of audio signal analysis, including speech recognition, music information retrieval, environmental sound analysis, and bioacoustics. A typical research pipeline involves training a (self-)supervised classification model (e.g. a convolutional network) on some large dataset, and distributing (part of) the model to be used as a general-purpose feature extractor. This approach is particularly appealing if it can facilitate the distribution of pre-extracted features from datasets which cannot be otherwise distributed openly, due to a variety of legal and ethical constraints, e.g.: copyrighted content, or recordings taken in public spaces. However, this raises the problem of invertibility: if the model can be even approximately inverted, then we cannot ensure that sensitive original audio data cannot be reconstructed from its features. In this project, we'll investigate techniques for developing models which provide useful acoustic features, while limiting their invertibility.
