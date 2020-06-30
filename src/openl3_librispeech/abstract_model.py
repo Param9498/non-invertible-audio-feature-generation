@@ -68,7 +68,7 @@ class AbstractModel(pl.LightningModule):
 
     def training_epoch_end(self, outputs):
         # OPTIONAL
-        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
+        avg_loss = torch.stack([x['batch_loss'] for x in outputs]).mean()
         tensorboard_logs = {'train_loss': avg_loss}
         return {'train_loss': avg_loss, 'log': tensorboard_logs}
 
