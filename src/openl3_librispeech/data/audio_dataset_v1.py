@@ -9,10 +9,11 @@ import numpy as np
 
 class AudioDataset(Dataset):
 
-    def __init__(self, root_dir, transform=None):
+    def __init__(self, root_dir, transform=None, randomize_frame=True):
         
         self.root_dir = root_dir
         self.transform = transform
+        self.randomize_frame=False
         
         self.list_of_embedding_file_names = []
         self.embeddings_dir = os.path.join(self.root_dir, 'embeddings_6144')
@@ -33,6 +34,10 @@ class AudioDataset(Dataset):
         assert set(list_of_spectrogram_file_names) == set(self.list_of_embedding_file_names)
         
         del list_of_spectrogram_file_names
+        
+        if self.randomize_frame == False:
+            random.seed(100)
+            self.fixed_frame_idx  = [random.randint(0, 1000) for i in range(len(self.list_of_embedding_file_names))]
             
 
     def __len__(self):
@@ -53,7 +58,10 @@ class AudioDataset(Dataset):
             spec = np.load(f)
             
         n = emb.shape[0]
-        i = random.randrange(n)
+        if self.randomize_frame==True:
+            i = random.randrange(n)
+        else:
+            i = self.fixed_frame_idx[idx]%n
         
         emb_tensor = torch.from_numpy(emb[i])
 #         print(spec[i].shape)

@@ -42,9 +42,9 @@ class AbstractModel(pl.LightningModule):
         self.dataset_model = dataset_model
     
     def prepare_data(self):
-        self.train_dataset = self.dataset_model(root_dir=self.data_paths['train'])
-        self.val_dataset = self.dataset_model(root_dir=self.data_paths['val'])
-#         self.test_dataset = self.dataset_model(root_dir=self.data_paths['test'])
+        self.train_dataset = self.dataset_model(root_dir=self.data_paths['train'], randomize_frame=True)
+        self.val_dataset = self.dataset_model(root_dir=self.data_paths['val'], randomize_frame=False)
+#         self.test_dataset = self.dataset_model(root_dir=self.data_paths['test'], randomize_frame=False)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.hparams.batch_size, shuffle=True, num_workers=4, pin_memory=True)
