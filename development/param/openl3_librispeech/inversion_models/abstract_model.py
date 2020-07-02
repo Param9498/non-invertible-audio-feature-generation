@@ -44,7 +44,7 @@ class AbstractModel(pl.LightningModule):
     def prepare_data(self):
         self.train_dataset = self.dataset_model(root_dir=self.data_paths['train'])
         self.val_dataset = self.dataset_model(root_dir=self.data_paths['val'])
-#         self.test_dataset = self.dataset_model(root_dir=self.data_paths['test'])
+        self.test_dataset = self.dataset_model(root_dir=self.data_paths['test'])
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.hparams.batch_size, shuffle=True, num_workers=4, pin_memory=True)
@@ -52,8 +52,8 @@ class AbstractModel(pl.LightningModule):
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.hparams.batch_size, shuffle=False, num_workers=4, pin_memory=True)
 
-#     def test_dataloader(self):
-#         return DataLoader(self.test_dataset, batch_size=self.hparams.batch_size, shuffle=False, num_workers=4, pin_memory=True)
+    def test_dataloader(self):
+        return DataLoader(self.test_dataset, batch_size=self.hparams.batch_size, shuffle=False, num_workers=4, pin_memory=True)
 
     def forward(self, x):
         x = self.model(x)
@@ -89,19 +89,19 @@ class AbstractModel(pl.LightningModule):
         tensorboard_logs = {'val_loss': avg_loss}
         return {'val_loss': avg_loss, 'log': tensorboard_logs}
 
-#     def test_step(self, batch, batch_nb):
-#         # OPTIONAL
-#         x, y = batch
-#         y_hat = self(x)
+    def test_step(self, batch, batch_nb):
+        # OPTIONAL
+        x, y = batch
+        y_hat = self(x)
         
-#         return {'test_loss': F.mse_loss(y_hat, y)}
+        return {'test_loss': F.mse_loss(y_hat, y)}
 
-#     def test_epoch_end(self, outputs):
-#         # OPTIONAL
-#         avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
+    def test_epoch_end(self, outputs):
+        # OPTIONAL
+        avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
         
-#         logs = {'test_loss': avg_loss}
-#         return {'test_loss': avg_loss, 'log': logs, 'progress_bar': logs}
+        logs = {'test_loss': avg_loss}
+        return {'test_loss': avg_loss, 'log': logs, 'progress_bar': logs}
 
     def configure_optimizers(self):
         
