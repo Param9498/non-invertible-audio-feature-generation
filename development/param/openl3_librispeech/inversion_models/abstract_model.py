@@ -42,9 +42,9 @@ class AbstractModel(pl.LightningModule):
         self.dataset_model = dataset_model
     
     def prepare_data(self):
-        self.train_dataset = self.dataset_model(root_dir=self.data_paths['train'])
-        self.val_dataset = self.dataset_model(root_dir=self.data_paths['val'])
-        self.test_dataset = self.dataset_model(root_dir=self.data_paths['test'])
+        self.train_dataset = self.dataset_model(root_dir=self.data_paths['train'], num_audios = self.hparams.train_num_audios)
+        self.val_dataset = self.dataset_model(root_dir=self.data_paths['val'], num_audios = self.hparams.val_num_audios)
+        self.test_dataset = self.dataset_model(root_dir=self.data_paths['test'], num_audios = self.hparams.test_num_audios)
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.hparams.batch_size, shuffle=True, num_workers=4, pin_memory=True)
@@ -68,7 +68,7 @@ class AbstractModel(pl.LightningModule):
 
     def training_epoch_end(self, outputs):
         # OPTIONAL
-        avg_loss = torch.stack([x['batch_loss'] for x in outputs]).mean()
+        avg_loss = torch.stack([x['loss'] for x in outputs]).mean()
         tensorboard_logs = {'train_loss': avg_loss}
         return {'train_loss': avg_loss, 'log': tensorboard_logs}
 
@@ -91,7 +91,7 @@ class AbstractModel(pl.LightningModule):
 
     def test_step(self, batch, batch_nb):
         # OPTIONAL
-        x, y = batch
+        x, y, i = batch
         y_hat = self(x)
         
         return {'test_loss': F.mse_loss(y_hat, y)}
