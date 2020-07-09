@@ -40,6 +40,8 @@ class AbstractModel(pl.LightningModule):
         self.best_validation_loss = 1e6
         
         self.dataset_model = dataset_model
+        
+        self.best_validation_loss = 1e6
     
     def prepare_data(self):
         self.train_dataset = self.dataset_model(root_dir=self.data_paths['train'], num_audios = self.hparams.train_num_audios)
@@ -104,13 +106,14 @@ class AbstractModel(pl.LightningModule):
         return {'test_loss': avg_loss, 'log': logs, 'progress_bar': logs}
 
     def configure_optimizers(self):
+        # REQUIRED
         
-        if self.optimizer is None:
+        if self.hparams.lr_type == 'SGD':
+            optimizer = optim.SGD(self.parameters(), lr=self.hparams.lr)
+        elif self.hparams.lr_type == 'Adam':
             optimizer = optim.Adam(self.parameters(), lr=self.hparams.lr)
-            scheduler = optim.lr_scheduler.StepLR(optimizer, 10, 0.1)
-            return [optimizer], [scheduler]
-        
         else:
-            return self.optimizer(self.parameters(), self.hparams)
-        
+            optimizer = optim.Adam(self.parameters(), lr=self.hparams.lr)
+            
+        scheduler = optim.lr_scheduler.StepLR(optimizer, self.hparams.scheduler_epoch, self.hparams.scheduler_step_size)
         return [optimizer], [scheduler]
