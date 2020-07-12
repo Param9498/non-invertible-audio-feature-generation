@@ -22,8 +22,7 @@ class AbstractModel(pl.LightningModule):
                  data_paths, 
                  dataset_model,
                  model, 
-                 criterion = None,
-                 optimizer = None):
+                 criterion = None):
         
         super().__init__()
         self.hparams = hparams
@@ -35,32 +34,32 @@ class AbstractModel(pl.LightningModule):
             self.criterion = nn.MSELoss()
         else:
             self.criterion = criterion
-            
-        self.optimizer = optimizer
+
         self.best_validation_loss = 1e6
         
         self.dataset_model = dataset_model
+        
+        self.best_validation_loss = 1e6
     
     def prepare_data(self):
-        self.train_dataset = self.dataset_model(root_dir=self.data_paths['train'], randomize_frame=True)
-        self.val_dataset = self.dataset_model(root_dir=self.data_paths['val'], randomize_frame=False)
-        self.test_dataset = self.dataset_model(root_dir=self.data_paths['test'], randomize_frame=False)
+        self.train_dataset = self.dataset_model(root_dir=self.data_paths['train'], num_audios = self.hparams.train_num_audios, return_amp = self.hparams.return_amp)
+        self.val_dataset = self.dataset_model(root_dir=self.data_paths['val'], num_audios = self.hparams.val_num_audios, return_amp = self.hparams.return_amp)
+        self.test_dataset = self.dataset_model(root_dir=self.data_paths['test'], num_audios = self.hparams.test_num_audios, return_amp = self.hparams.return_amp)
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.hparams.batch_size, shuffle=True, num_workers=4, pin_memory=True)
+        return DataLoader(self.train_dataset, batch_size=self.hparams.batch_size, shuffle=True, num_workers=self.hparams.num_workers, pin_memory=True)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.hparams.batch_size, shuffle=False, num_workers=4, pin_memory=True)
+        return DataLoader(self.val_dataset, batch_size=self.hparams.batch_size, shuffle=False, num_workers=self.hparams.num_workers, pin_memory=True)
 
     def test_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=self.hparams.batch_size, shuffle=False, num_workers=4, pin_memory=True)
+        return DataLoader(self.test_dataset, batch_size=self.hparams.batch_size, shuffle=False, num_workers=self.hparams.num_workers, pin_memory=True)
 
     def forward(self, x):
         x = self.model(x)
         return x
 
     def training_step(self, batch, batch_nb):
-        # REQUIRED
         x, y, i = batch
         y_hat = self(x)
         loss = self.criterion(y_hat, y)
@@ -73,14 +72,12 @@ class AbstractModel(pl.LightningModule):
         return {'train_loss': avg_loss, 'log': tensorboard_logs}
 
     def validation_step(self, batch, batch_nb):
-        # OPTIONAL
         x, y, i = batch
         y_hat = self(x)
         
         return {'val_loss': F.mse_loss(y_hat, y)}
 
     def validation_epoch_end(self, outputs):
-        # OPTIONAL
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         
         if avg_loss.item() < self.best_validation_loss:
@@ -90,27 +87,24 @@ class AbstractModel(pl.LightningModule):
         return {'val_loss': avg_loss, 'log': tensorboard_logs}
 
     def test_step(self, batch, batch_nb):
-        # OPTIONAL
         x, y, i = batch
         y_hat = self(x)
         
         return {'test_loss': F.mse_loss(y_hat, y)}
 
     def test_epoch_end(self, outputs):
-        # OPTIONAL
         avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
         
         logs = {'test_loss': avg_loss}
         return {'test_loss': avg_loss, 'log': logs, 'progress_bar': logs}
 
     def configure_optimizers(self):
-        
-        if self.optimizer is None:
+        if self.hparams.lr_type == 'SGD':
+            optimizer = optim.SGD(self.parameters(), lr=self.hparams.lr)
+        elif self.hparams.lr_type == 'Adam':
             optimizer = optim.Adam(self.parameters(), lr=self.hparams.lr)
-            scheduler = optim.lr_scheduler.StepLR(optimizer, 10, 0.1)
-            return [optimizer], [scheduler]
-        
         else:
-            return self.optimizer(self.parameters(), self.hparams)
-        
+            optimizer = optim.Adam(self.parameters(), lr=self.hparams.lr)
+            
+        scheduler = optim.lr_scheduler.StepLR(optimizer, self.hparams.scheduler_epoch, self.hparams.scheduler_step_size)
         return [optimizer], [scheduler]
