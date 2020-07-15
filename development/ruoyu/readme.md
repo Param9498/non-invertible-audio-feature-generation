@@ -1,4 +1,4 @@
-### downsteam task pipline
+### downstream task pipline
 
 dataset: GTZAN Genre Collection
 The dataset consists of 1000 audio tracks each 30 seconds long. 
