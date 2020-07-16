@@ -14,13 +14,13 @@ Feature extractor: Openl3
 
 Classification model: linearSVM (a multi-class one-vs-all linear SVM is trained) as in the openl3 paper
 
-#### feature extractor: hop_size = 1, embedding_size = 6144, content_type = 'music'
-model_type == 'openl3':
-        model = openl3.models.load_audio_embedding_model(input_repr="mel256", content_type="music", embedding_size=6144) /512
+#### feature extractor: model_type == 'openl3',  hop_size = 1, embedding_size = 6144, content_type = 'music'
 
-model_type == 'openl3':
-            wave, sr = wavefile_to_waveform(config['audio_folder'] + p, 'openl3')
-            emb, _ = openl3.get_audio_embedding(wave, sr, hop_size=1, model=model, verbose=False)
+model = openl3.models.load_audio_embedding_model(input_repr="mel256", content_type="music", embedding_size=6144) /512
+
+wave, sr = wavefile_to_waveform(config['audio_folder'] + p, 'openl3')
+            
+emb, _ = openl3.get_audio_embedding(wave, sr, hop_size=1, model=model, verbose=False)
             
             
             
