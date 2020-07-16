@@ -72,9 +72,7 @@ class AudioDataset(Dataset):
         
         emb_tensor = torch.from_numpy(emb[frame_idx])
         spec_tensor = torch.from_numpy(spec[frame_idx]).permute(2, 0, 1)
-        
-        print(file_name, frame_idx, emb.shape[0])
-        
+                
         if self.return_amp is True:
             spec_tensor_amp = F.DB_to_amplitude(x = spec_tensor, ref = 1, power = 0.5)
             return emb_tensor, spec_tensor_amp, torch.tensor(frame_idx)
