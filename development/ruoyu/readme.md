@@ -1,5 +1,26 @@
 ### downstream task pipline
 
+dataset: OpenMIC-2018 
+
+https://zenodo.org/record/1432913#.XyMaBpNKhhA
+
+the dataset 
+10 second snippets of audio
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 dataset: GTZAN Genre Collection
 
 http://opihi.cs.uvic.ca/sound/genres.tar.gz
