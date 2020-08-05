@@ -36,7 +36,7 @@ def binarySearch(data, val):
 
 class AudioDataset(Dataset):
 
-    def __init__(self, root_dir, transform=None, num_audios = -1, return_amp = True, emb_means = None, emb_stds = None, spec_means = None, spec_stds = None):
+    def __init__(self, root_dir, transform=None, num_audios = -1, num_frames = -1, return_amp = True, emb_means = None, emb_stds = None, spec_means = None, spec_stds = None):
         
         self.root_dir = root_dir
         self.embeddings_dir = os.path.join(self.root_dir, 'embeddings_6144')
@@ -48,6 +48,7 @@ class AudioDataset(Dataset):
         self.emb_stds = emb_stds
         self.spec_means = spec_means
         self.spec_stds = spec_stds
+        self.num_frames = num_frames
         
         self.df = pd.read_csv(os.path.join(root_dir, 'number_of_frames_per_audio.csv'))
         if num_audios > 0 and isinstance(num_audios, int):
@@ -56,9 +57,15 @@ class AudioDataset(Dataset):
         
                 
     def __len__(self):
-        return self.df['number_of_frames'].sum()
+        if self.num_frames != -1:
+            return self.num_frames
+        else:
+            return self.df['number_of_frames'].sum()
 
     def __getitem__(self, idx):
+        
+        if self.num_frames != -1:
+            idx = idx % self.num_frames
         
         low_index, high_index = binarySearch(self.cumulative_sum, idx+1)
         file_name = self.df.iloc[high_index]['file_name']
@@ -89,7 +96,7 @@ class AudioDataset(Dataset):
                 spec_tensor_amp = ( spec_tensor_amp - torch.tensor(self.spec_means) ) / torch.tensor(self.spec_stds)
                 spec_tensor_amp = spec_tensor_amp.float()
             
-            return emb_tensor, spec_tensor_amp, torch.tensor(frame_idx)
+            return emb_tensor, spec_tensor_amp,file_name, torch.tensor(frame_idx)
         else:
-            return emb_tensor, spec_tensor, torch.tensor(frame_idx)
+            return emb_tensor, spec_tensor, file_name, torch.tensor(frame_idx)
 

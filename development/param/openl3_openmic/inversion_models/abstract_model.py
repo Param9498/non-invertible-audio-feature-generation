@@ -41,6 +41,14 @@ class AbstractModel(pl.LightningModule):
         
         self.best_validation_loss = 1e6
         
+        if not hasattr(self.hparams, 'num_frames'):
+            self.hparams.num_frames = -1
+        if not hasattr(self.hparams, 'train_num_audios'):
+            self.hparams.train_num_audios = -1
+        if not hasattr(self.hparams, 'val_num_audios'):
+            self.hparams.val_num_audios = -1
+        if not hasattr(self.hparams, 'test_num_audios'):
+            self.hparams.test_num_audios = -1
         if not hasattr(self.hparams, 'emb_means'):
             self.hparams.emb_means = None
         if not hasattr(self.hparams, 'emb_stds'):
@@ -49,11 +57,15 @@ class AbstractModel(pl.LightningModule):
             self.hparams.spec_means = None
         if not hasattr(self.hparams, 'spec_stds'):
             self.hparams.spec_stds = None
+            
+        self.list_of_files = []
+        self.list_of_frames = []
     
     def prepare_data(self):
         self.train_dataset = self.dataset_model(
             root_dir=self.data_paths['train'], 
             num_audios = self.hparams.train_num_audios, 
+            num_frames = self.hparams.num_frames,
             return_amp = self.hparams.return_amp, 
             emb_means=self.hparams.emb_means, 
             emb_stds=self.hparams.emb_stds,
@@ -63,6 +75,7 @@ class AbstractModel(pl.LightningModule):
         self.val_dataset = self.dataset_model(
             root_dir=self.data_paths['val'], 
             num_audios = self.hparams.val_num_audios, 
+            num_frames = self.hparams.num_frames,
             return_amp = self.hparams.return_amp, 
             emb_means=self.hparams.emb_means, 
             emb_stds=self.hparams.emb_stds,
@@ -72,6 +85,7 @@ class AbstractModel(pl.LightningModule):
         self.test_dataset = self.dataset_model(
             root_dir=self.data_paths['test'], 
             num_audios = self.hparams.test_num_audios, 
+            num_frames = self.hparams.num_frames,
             return_amp = self.hparams.return_amp, 
             emb_means=self.hparams.emb_means, 
             emb_stds=self.hparams.emb_stds,
@@ -93,9 +107,12 @@ class AbstractModel(pl.LightningModule):
         return x
 
     def training_step(self, batch, batch_nb):
-        x, y, i = batch
+        x, y, file_name, i = batch
         y_hat = self(x)
         loss = self.criterion(y_hat, y)
+        if file_name not in self.list_of_files:
+            self.list_of_files.append(file_name)
+            self.list_of_frames.append(i.item())
         return {'loss': loss}
 
     def training_epoch_end(self, outputs):
@@ -105,7 +122,7 @@ class AbstractModel(pl.LightningModule):
         return {'train_loss': avg_loss, 'log': tensorboard_logs}
 
     def validation_step(self, batch, batch_nb):
-        x, y, i = batch
+        x, y, file_name, i = batch
         y_hat = self(x)
         
         return {'val_loss': F.mse_loss(y_hat, y)}
@@ -120,7 +137,7 @@ class AbstractModel(pl.LightningModule):
         return {'val_loss': avg_loss, 'log': tensorboard_logs, 'progress_bar': tensorboard_logs}
 
     def test_step(self, batch, batch_nb):
-        x, y, i = batch
+        x, y, file_name, i = batch
         y_hat = self(x)
         
         return {'test_loss': F.mse_loss(y_hat, y)}
