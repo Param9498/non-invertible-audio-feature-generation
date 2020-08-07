@@ -34,7 +34,9 @@ class AudioDataset(Dataset):
             for file in files:
                 if file.endswith(".npy"):
                      list_of_spectrogram_file_names.append(file)
-                        
+        
+#         print(len(set(list_of_spectrogram_file_names)), len(set(self.list_of_embedding_file_names)))
+#         print(np.setdiff1d(self.list_of_embedding_file_names,list_of_spectrogram_file_names))
         assert set(list_of_spectrogram_file_names) == set(self.list_of_embedding_file_names)
         
         del list_of_spectrogram_file_names

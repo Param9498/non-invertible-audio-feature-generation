@@ -96,7 +96,7 @@ class AudioDataset(Dataset):
                 spec_tensor_amp = ( spec_tensor_amp - torch.tensor(self.spec_means) ) / torch.tensor(self.spec_stds)
                 spec_tensor_amp = spec_tensor_amp.float()
             
-            return emb_tensor, spec_tensor_amp,file_name, torch.tensor(frame_idx)
+            return emb_tensor, spec_tensor_amp, file_name, torch.tensor(frame_idx)
         else:
             return emb_tensor, spec_tensor, file_name, torch.tensor(frame_idx)
 
